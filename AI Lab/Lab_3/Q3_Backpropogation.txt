@@ -1,0 +1,37 @@
+# The simplest backpropagation example possible
+
+# We'll teach the computer to learn this rule:
+# If input is > 0.5, output should be 1, else 0
+
+# Our training examples
+inputs = [0.2, 0.4, 0.6, 0.8]
+correct_outputs = [0, 0, 1, 1]
+
+# Start with a random guess (weight between -1 and 1)
+weight = 0.5
+bias = 0.1
+learning_rate = 0.1
+
+print("Starting training...")
+for _ in range(100):  # We'll learn over 100 steps
+    for i in range(len(inputs)):
+        # Make a prediction
+        prediction = inputs[i] * weight + bias
+        prediction = 1 if prediction > 0.5 else 0  # Simple threshold
+        
+        # Calculate error
+        error = correct_outputs[i] - prediction
+        
+        # Learn from mistake
+        weight += learning_rate * error * inputs[i]
+        bias += learning_rate * error
+        
+    # Print progress every 20 steps
+    if _ % 20 == 0:
+        print(f"After step {_}: weight = {weight:.2f}, bias = {bias:.2f}")
+
+# Test what we learned
+print("\nFinal results:")
+for x in inputs:
+    output = x * weight + bias
+    print(f"Input {x} -> {1 if output > 0.5 else 0} (should be {1 if x > 0.5 else 0})")

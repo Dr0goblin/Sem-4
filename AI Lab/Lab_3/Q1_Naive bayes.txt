@@ -1,0 +1,16 @@
+# Count words in spam/ham (non-spam) emails
+spam_words = {"free": 3, "win": 2, "prize": 1}  # Spam words
+ham_words = {"meeting": 2, "lunch": 1, "work": 3}  # Normal words
+
+def is_spam(email):
+    spam_score = 1  # Start with small probability
+    ham_score = 1
+    
+    for word in email.split():
+        spam_score *= spam_words.get(word, 0.1)  # If word unknown, give low weight
+        ham_score *= ham_words.get(word, 0.1)
+    
+    return "SPAM!" if spam_score > ham_score else "NOT SPAM"
+
+print(is_spam("free lunch"))  # "NOT SPAM" (lunch beats free)
+print(is_spam("win free prize"))  # "SPAM!"

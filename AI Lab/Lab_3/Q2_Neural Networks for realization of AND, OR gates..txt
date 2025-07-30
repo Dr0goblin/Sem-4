@@ -1,0 +1,8 @@
+def AND(x1, x2):
+    return x1 and x2  # Both must be True (1)
+
+def OR(x1, x2):
+    return x1 or x2  # At least one True (1)
+
+print("AND(1,1):", AND(1,1))  # 1
+print("OR(0,1):", OR(0,1))    # 1
