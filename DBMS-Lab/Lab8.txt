@@ -1,0 +1,163 @@
+# Method 1: Using XAMPP Shell
+1. Open XAMPP Control Panel
+2. Click "Shell" button
+3. Type: mysql -u root -p
+4. Press Enter (empty password by default)
+
+# Method 2: Direct command prompt
+cd C:\xampp\mysql\bin
+mysql.exe -u root
+
+
+2. Complete Lab Steps:
+sql
+-- ============================================
+-- SETUP: Create table and insert data
+-- ============================================
+
+-- Create accounts table
+CREATE TABLE accounts (
+    acc_id INT PRIMARY KEY, 
+    name VARCHAR(50), 
+    balance DECIMAL(10,2)
+);
+
+-- Insert sample data
+INSERT INTO accounts VALUES 
+    (1, 'Alice', 1000.00), 
+    (2, 'Bob', 1500.00);
+
+-- View data
+SELECT * FROM accounts;
+-- Expected output:
+-- +--------+-------+---------+
+-- | acc_id | name  | balance |
+-- +--------+-------+---------+
+-- |      1 | Alice | 1000.00 |
+-- |      2 | Bob   | 1500.00 |
+-- +--------+-------+---------+
+
+-- ============================================
+-- STAGING: Database operations
+-- ============================================
+
+-- List all existing databases
+SHOW DATABASES;
+-- You'll see databases like: information_schema, mysql, performance_schema, etc.
+
+-- Create transaction database
+CREATE DATABASE transaction;
+
+-- Verify database is created
+SHOW DATABASES;
+-- Now you should see 'transaction' in the list
+
+-- Use the transaction database
+USE transaction;
+
+-- ============================================
+-- COMMIT TRANSACTION Example
+-- ============================================
+
+-- First, recreate the accounts table in transaction database
+CREATE TABLE accounts (
+    acc_id INT PRIMARY KEY, 
+    name VARCHAR(50), 
+    balance DECIMAL(10,2)
+);
+
+INSERT INTO accounts VALUES 
+    (1, 'Alice', 1000.00), 
+    (2, 'Bob', 1500.00);
+
+-- Start transaction
+START TRANSACTION;
+
+-- Transfer 200 from Alice to Bob
+UPDATE accounts SET balance = balance - 200 WHERE acc_id = 1;
+UPDATE accounts SET balance = balance + 200 WHERE acc_id = 2;
+
+-- Check balances during transaction
+SELECT * FROM accounts;
+-- Expected output:
+-- +--------+-------+---------+
+-- | acc_id | name  | balance |
+-- +--------+-------+---------+
+-- |      1 | Alice |  800.00 |
+-- |      2 | Bob   | 1700.00 |
+-- +--------+-------+---------+
+
+-- Commit the transaction (make changes permanent)
+COMMIT;
+
+-- Verify after commit
+SELECT * FROM accounts;
+-- Same result as above (changes are permanent)
+
+-- ============================================
+-- ROLLBACK TRANSACTION Example
+-- ============================================
+
+-- Start new transaction
+START TRANSACTION;
+
+-- Try to transfer 500 from Alice to Bob (but notice +600 - intentional error!)
+UPDATE accounts SET balance = balance - 500 WHERE acc_id = 1;
+UPDATE accounts SET balance = balance + 600 WHERE acc_id = 2;  -- Error: 600 instead of 500
+
+-- Check current state
+SELECT * FROM accounts;
+-- Expected output (temporary):
+-- +--------+-------+---------+
+-- | acc_id | name  | balance |
+-- +--------+-------+---------+
+-- |      1 | Alice |  300.00 |  -- 800-500 = 300
+-- |      2 | Bob   | 2300.00 |  -- 1700+600 = 2300
+-- +--------+-------+---------+
+
+-- Rollback the transaction (undo all changes)
+ROLLBACK;
+
+-- Verify after rollback
+SELECT * FROM accounts;
+-- Expected output (back to original committed state):
+-- +--------+-------+---------+
+-- | acc_id | name  | balance |
+-- +--------+-------+---------+
+-- |      1 | Alice |  800.00 |
+-- |      2 | Bob   | 1700.00 |
+-- +--------+-------+---------+
+-- The erroneous transaction was completely undone!
+
+
+
+3. Additional Practice (for better understanding):
+sql
+-- ============================================
+-- SAVEPOINT Example (Bonus)
+-- ============================================
+START TRANSACTION;
+
+-- Initial update
+UPDATE accounts SET balance = 2000.00 WHERE acc_id = 1;
+SELECT * FROM accounts;  -- Alice: 2000, Bob: 1700
+
+-- Create savepoint
+SAVEPOINT checkpoint1;
+
+-- More updates
+UPDATE accounts SET balance = balance - 1000 WHERE acc_id = 1;
+UPDATE accounts SET balance = balance + 1000 WHERE acc_id = 2;
+SELECT * FROM accounts;  -- Alice: 1000, Bob: 2700
+
+-- Rollback to savepoint (undo only part of transaction)
+ROLLBACK TO checkpoint1;
+SELECT * FROM accounts;  -- Back to: Alice: 2000, Bob: 1700
+
+-- Continue with transaction
+UPDATE accounts SET name = 'Alice Smith' WHERE acc_id = 1;
+
+-- Commit final state
+COMMIT;
+SELECT * FROM accounts;  -- Alice Smith: 2000, Bob: 1700
+
